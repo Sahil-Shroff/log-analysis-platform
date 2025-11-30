@@ -1,3 +1,4 @@
+import { initProducer } from "../../kafka/producer.ts";
 import { createService } from "./services/createService.ts";
 
 // Define 12 services
@@ -15,6 +16,8 @@ const services = [
   { name: "review-service", dependency: "user-service" },
   { name: "gateway-service" }
 ];
+
+await initProducer()
 
 // Start them
 services.forEach((svc) =>

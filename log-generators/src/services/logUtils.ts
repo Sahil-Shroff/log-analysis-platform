@@ -1,7 +1,7 @@
 import type { LogEntry } from "../types.js";
 import { faker } from "@faker-js/faker";
 
-import { sendLog } from "../../../kafka/producer.js";
+import { sendLog } from "../../../kafka/producer.ts";
 
 const levels = ["INFO", "WARN", "ERROR"] as const;
 
