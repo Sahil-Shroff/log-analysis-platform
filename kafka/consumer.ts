@@ -1,21 +1,26 @@
-import { Kafka } from "kafkajs";
+import { kafka } from "./kafkaClient.js";
 
-const kafka = new Kafka({
-  clientId: "debug-consumer",
-  brokers: ["localhost:9092"]
-});
+export async function createConsumer(groupId: string, topic: string, handler: (msg: any) => Promise<void>) {
+  const consumer = kafka.consumer({ groupId });
 
-const consumer = kafka.consumer({ groupId: "debug-group" });
-
-export async function startDebugConsumer() {
   await consumer.connect();
-  await consumer.subscribe({ topic: "raw_logs", fromBeginning: true });
+  await consumer.subscribe({ topic, fromBeginning: false });
+
+  console.log(`[kafka] Consumer ${groupId} subscribed to ${topic}`);
 
   await consumer.run({
     eachMessage: async ({ message }) => {
-      console.log("Received:", message.value?.toString());
-    }
-  });
-}
+      const value = message.value?.toString();
+      if (!value) return;
 
-startDebugConsumer().catch(console.error);
+      try {
+        const parsed = JSON.parse(value);
+        await handler(parsed);
+      } catch (err) {
+        console.error("Failed to process message:", err);
+      }
+    },
+  });
+
+  return consumer;
+}
