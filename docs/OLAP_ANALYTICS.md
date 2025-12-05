@@ -1,10 +1,6 @@
-# OLAP Analytics Layer
+﻿# OLAP Analytics Layer
 
-The analytics stage computes long-term statistics from the `logs` table.
-
-Runs manually or as a scheduled job.
-
----
+The analytics stage computes long-term statistics from the `logs` table. It can run manually or as a scheduled job.
 
 ## Summary Table
 
@@ -20,31 +16,31 @@ CREATE TABLE service_analytics (
     p95_latency NUMERIC,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
-OLAP Computations
+```
+
+## OLAP Computations
+
 Hourly aggregates:
 
+```sql
 SELECT
   date_trunc('hour', timestamp) AS bucket,
   service,
   COUNT(*) AS log_count,
-  COUNT(*) FILTER (WHERE level IN ('ERROR','CRITICAL')) AS error_count,
+  COUNT(*) FILTER (WHERE level IN ('ERROR', 'CRITICAL')) AS error_count,
   AVG(latency_ms) AS avg_latency,
   percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms) AS p95
 FROM logs
 GROUP BY bucket, service;
+```
 
-The script:
+## Script
+`analytics/runAnalytics.ts` stores results into `service_analytics`.
 
-analytics/runAnalytics.ts
+## Usage
 
-stores results into service_analytics.
-
-Usage
-
+```bash
 node analytics/runAnalytics.ts
+```
 
-Analytics then become available to:
-
-REST API endpoints
-UI dashboards
-Trend visualization
+Analytics then become available to REST API endpoints, UI dashboards, and trend visualizations.

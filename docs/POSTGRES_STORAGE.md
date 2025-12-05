@@ -1,8 +1,8 @@
-# Postgres Storage Layer
+﻿# Postgres Storage Layer
 
 CLEAN_LOGS are persisted for long-term analytics.
 
-Table created as:
+## Table Definition
 
 ```sql
 CREATE TABLE logs (
@@ -23,18 +23,16 @@ CREATE INDEX idx_logs_ts ON logs (timestamp DESC);
 CREATE INDEX idx_logs_service ON logs (service);
 CREATE INDEX idx_logs_level ON logs (level);
 CREATE INDEX idx_logs_trace ON logs (trace_id);
-DB Writer Service
-Consumes CLEAN_LOGS and inserts into Postgres.
+```
 
-See:
+## DB Writer Service
+Consumes CLEAN_LOGS and inserts into Postgres. See:
+- `db-writer/index.ts`
+- `db-writer/dbClient.ts`
 
-db-writer/index.ts
+## Resetting the DB
 
-db-writer/dbClient.ts
-
-Resetting DB
-sql
-
+```bash
 docker exec -it postgres psql -U postgres -d logs_db
 TRUNCATE logs;
----
+```
