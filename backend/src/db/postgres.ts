@@ -6,49 +6,103 @@ export const pool = new Pool({
   port: 5432,
   user: "postgres",
   password: "postgres",
-  database: "logsdb"
+  database: "logs_db",
 });
 
-// ------------ OLAP -------------
-export async function getServiceOLAPData(service: string, hours: number) {
+export interface LogRow {
+  id: number;
+  timestamp: string;
+  service: string;
+  level: string;
+  message: string;
+  trace_id: string | null;
+  hostname: string | null;
+  dependency: string | null;
+  latency_ms: number | null;
+  error_code: string | null;
+  raw: any;
+}
+
+export interface ServiceOlapPoint {
+  timestamp: string;
+  total_logs: number;
+  error_count: number;
+  error_rate: number;
+  avg_latency: number | null;
+  p95_latency: number | null;
+}
+
+// ---- Service-level OLAP ----
+
+export async function getServiceOLAPData(
+  service: string,
+  hours: number
+): Promise<ServiceOlapPoint[]> {
   const query = `
     SELECT
-      date_trunc('hour', timestamp) AS ts,
+      date_trunc('hour', timestamp) AS timestamp,
       COUNT(*) AS total_logs,
-      COUNT(*) FILTER (WHERE level = 'ERROR') AS error_count,
-      AVG(latency_ms) AS avg_latency,
+      COUNT(*) FILTER (WHERE level IN ('ERROR','CRITICAL')) AS error_count,
+      ROUND(
+        COUNT(*) FILTER (WHERE level IN ('ERROR','CRITICAL'))::numeric
+        / NULLIF(COUNT(*), 0), 3
+      ) AS error_rate,
+      AVG(latency_ms)::numeric AS avg_latency,
       percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms) AS p95_latency
     FROM logs
     WHERE service = $1
       AND timestamp >= NOW() - INTERVAL '${hours} hours'
-    GROUP BY ts
-    ORDER BY ts;
+    GROUP BY 1
+    ORDER BY 1;
   `;
 
   const res = await pool.query(query, [service]);
   return res.rows;
 }
 
-// ------------ Global OLAP -------------
-export async function getGlobalOLAP(hours: number) {
+// ---- Global OLAP ----
+
+export interface GlobalOlapPoint {
+  timestamp: string;
+  logs: number;
+  errors: number;
+  avg_latency: number | null;
+  p95_latency: number | null;
+}
+
+export async function getGlobalOLAP(hours: number): Promise<GlobalOlapPoint[]> {
   const query = `
     SELECT
-      date_trunc('hour', timestamp) AS ts,
+      date_trunc('hour', timestamp) AS timestamp,
       COUNT(*) AS logs,
-      COUNT(*) FILTER (WHERE level = 'ERROR') AS errors,
-      AVG(latency_ms) AS avg_latency,
+      COUNT(*) FILTER (WHERE level IN ('ERROR','CRITICAL')) AS errors,
+      AVG(latency_ms)::numeric AS avg_latency,
       percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms) AS p95_latency
     FROM logs
     WHERE timestamp >= NOW() - INTERVAL '${hours} hours'
-    GROUP BY ts
-    ORDER BY ts;
+    GROUP BY 1
+    ORDER BY 1;
   `;
 
-  return (await pool.query(query)).rows;
+  const res = await pool.query(query);
+  return res.rows;
 }
 
-// ------------ LOG SEARCH -------------
-export async function searchLogsQuery(params: any) {
+// ---- Log search ----
+
+export interface LogSearchParams {
+  service?: string;
+  level?: string;
+  trace_id?: string;
+  keyword?: string;
+  latency_gt?: string | number;
+  from?: string;
+  to?: string;
+  limit?: string | number;
+  offset?: string | number;
+}
+
+export async function searchLogsQuery(params: LogSearchParams) {
   let query = `SELECT * FROM logs WHERE 1=1`;
   const values: any[] = [];
   let idx = 1;
@@ -82,8 +136,11 @@ export async function searchLogsQuery(params: any) {
     values.push(params.to);
   }
 
-  query += ` ORDER BY timestamp DESC LIMIT ${params.limit || 100}`;
+  const limit = Number(params.limit) || 100;
+  const offset = Number(params.offset) || 0;
 
-  const res = await pool.query(query, values);
+  query += ` ORDER BY timestamp DESC LIMIT ${limit} OFFSET ${offset}`;
+
+  const res = await pool.query<LogRow>(query, values);
   return { total: res.rowCount, results: res.rows };
 }

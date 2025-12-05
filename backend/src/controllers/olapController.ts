@@ -1,12 +1,23 @@
 import { Request, Response } from "express";
 import { getGlobalOLAP } from "../db/postgres.js";
 
+import type { GlobalOlapResponse } from "../apiTypes.ts";
+
 export async function getGlobalOLAPMetrics(req: Request, res: Response) {
+  const hours = Number(req.query.hours) || 24;
+
   try {
-    const hours = Number(req.query.hours) || 24;
     const data = await getGlobalOLAP(hours);
-    res.json({ hours, data });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch OLAP metrics" });
+
+    const response: GlobalOlapResponse = {
+      hours,
+      data
+    };
+
+    res.json(response);
+
+  } catch (error) {
+    console.error("[global olap] failed:", error);
+    res.status(500).json({ error: "Failed to load OLAP metrics" });
   }
 }

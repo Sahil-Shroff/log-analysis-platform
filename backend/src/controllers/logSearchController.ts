@@ -1,12 +1,14 @@
 import { Request, Response } from "express";
 import { searchLogsQuery } from "../db/postgres.js";
+import type { LogSearchResult } from "../apiTypes.ts";
 
 export async function searchLogs(req: Request, res: Response) {
   try {
-    const results = await searchLogsQuery(req.query);
-    res.json(results);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to search logs" });
+    const result: LogSearchResult = await searchLogsQuery(req.query);
+    res.json(result);
+
+  } catch (error) {
+    console.error("[log search] failed:", error);
+    res.status(500).json({ error: "Log search failed" });
   }
 }
