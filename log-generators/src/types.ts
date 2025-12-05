@@ -21,11 +21,16 @@ export interface RawLog {
 export interface NormalizedLog {
   timestamp: string;
   service: string;
-  level: RawLog["level"];
+  level: string;
   message: string;
 
   traceId: string;
   host: string;
 
+  latency_ms: number;
+  dependency?: string;
+  error_code?: string;
+
   metadata?: Record<string, any>;
 }
+

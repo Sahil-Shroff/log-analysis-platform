@@ -1,23 +1,25 @@
 import os from "os";
 import crypto from "crypto";
-import type { NormalizedLog, RawLog } from "../log-generators/src/types.ts";
+import type { NormalizedLog, LogEntry } from "../log-generators/src/types.ts";
 
-export function validateRawLog(log: RawLog): boolean {
-  if (!log.service || !log.message) return false;
-  if (!["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"].includes(log.level)) return false;
-  return true;
+export function validateRawLog(log: LogEntry): boolean {
+  return !!log.service && !!log.message;
 }
 
-export function enrichLog(log: RawLog): NormalizedLog {
+export function enrichLog(log: LogEntry): NormalizedLog {
   return {
-    timestamp: log.timestamp ?? new Date().toISOString(),
+    timestamp: log.timestamp,
     service: log.service,
     level: log.level,
     message: log.message,
-
-    traceId: crypto.randomUUID(),
+    traceId: log.trace_id,
     host: os.hostname(),
 
-    metadata: log.metadata ?? {}
+    // preserve original fields
+    latency_ms: log.latency_ms,
+    dependency: log.dependency,
+    error_code: log.error_code,
+    metadata: {}
   };
 }
+
