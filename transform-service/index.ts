@@ -1,40 +1,30 @@
-import { kafka } from "../kafka/consumer.ts"; 
-import { validateRawLog, enrichLog } from "./processor";
-
-const consumer = kafka.consumer({ groupId: "transform-service" });
-const producer = kafka.producer();
+// transform-service/index.ts
+import { createConsumer } from "../kafka/consumer.ts";
+import { connectProducer, publish } from "../kafka/producer.ts";
+import { TOPICS } from "../kafka/topics.ts";
+import { validateRawLog, enrichLog } from "./processor.ts";
 
 export async function startTransformService() {
-  await producer.connect();
-  await consumer.connect();
-  await consumer.subscribe({ topic: "raw-logs", fromBeginning: false });
+  const producer = await connectProducer();
 
-  await consumer.run({
-    eachMessage: async ({ message }) => {
-      try {
-        const raw = JSON.parse(message.value!.toString());
+  await createConsumer("transform-service", TOPICS.RAW_LOGS, async (raw) => {
+    // 1. Validation
+    if (!validateRawLog(raw)) {
+      console.log("Discarding invalid log");
+      return;  
+    }
 
-        if (!validateRawLog(raw)) {
-          return; // discard or publish to DLQ later
-        }
+    // 2. Enrichment
+    const enriched = enrichLog(raw);
 
-        const enriched = enrichLog(raw);
+    // 3. Publish clean logs
+    await publish(TOPICS.CLEAN_LOGS, enriched);
 
-        await producer.send({
-          topic: "normalized-logs",
-          messages: [{ value: JSON.stringify(enriched) }]
-        });
-
-        if (enriched.level === "CRITICAL") {
-          await producer.send({
-            topic: "alerts",
-            messages: [{ value: JSON.stringify(enriched) }]
-          });
-        }
-
-      } catch (err) {
-        console.error("Failed to process log:", err);
-      }
+    // 4. Publish CRITICAL logs to alerts
+    if (enriched.level === "CRITICAL") {
+      await publish(TOPICS.ALERTS, enriched);
     }
   });
+
+  console.log("[transform] Service started");
 }

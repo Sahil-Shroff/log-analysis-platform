@@ -1,6 +1,6 @@
 import os from "os";
 import crypto from "crypto";
-import { NormalizedLog, RawLog } from "../log-generators/src/types";
+import type { NormalizedLog, RawLog } from "../log-generators/src/types.ts";
 
 export function validateRawLog(log: RawLog): boolean {
   if (!log.service || !log.message) return false;

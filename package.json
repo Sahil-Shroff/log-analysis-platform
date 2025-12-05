@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node --loader ts-node/esm log-generators/src/index.ts"
+    "generate-log": "node --loader ts-node/esm log-generators/src/index.ts",
+    "transform-log": "node --loader ts-node/esm transform-service/index.ts"
   },
   "keywords": [],
   "author": "",
