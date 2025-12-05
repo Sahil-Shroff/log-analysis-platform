@@ -39,6 +39,48 @@ export async function startRedisAggregator() {
     await redis.incr(bucketKey);
     await redis.expire(bucketKey, 60 * 120); // keep buckets for 2 hours
 
+    // ---------------------------
+    // PHASE 3: Service health score
+    // ---------------------------
+
+    // E. Service health score
+    // baseline health
+    const baseHealth = 100;
+
+    let health = baseHealth;
+
+    // impact of errors
+    if (log.level === "ERROR") health -= 2;
+    if (log.level === "CRITICAL") health -= 5;
+
+    // impact of high latency
+    if (log.latency_ms > 300) {
+      health -= Math.floor((log.latency_ms - 300) / 50);
+    }
+
+    // clamp between 0 and 100
+    health = Math.max(0, Math.min(100, health));
+
+    // write to Redis
+    await redis.set(`service:${log.service}:health`, health);
+
+    // F. Dependency metrics
+    if (log.dependency) {
+      await redis.incr(`dependency:${log.service}:${log.dependency}:count`);
+      if (log.level === "ERROR" || log.level === "CRITICAL") {
+        await redis.incr(`dependency:${log.service}:${log.dependency}:errors`);
+      }
+    }
+
+    // G. Recent logs (last 50)
+    await redis.lPush(
+      `recentlogs:${log.service}`,
+      JSON.stringify(log)
+    );
+
+    // keep only last 50 logs
+    await redis.lTrim(`recentlogs:${log.service}`, 0, 49);
+
   });
 
   console.log("[redis-aggregator] Running");
