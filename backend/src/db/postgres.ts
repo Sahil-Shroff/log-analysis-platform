@@ -3,10 +3,10 @@ const { Pool } = pg;
 
 export const pool = new Pool({
   host: "localhost",
-  port: 5432,
-  user: "postgres",
-  password: "postgres",
-  database: "logs_db",
+  port: 5434,
+  user: "cloudsqlsuperuser",
+  password: "password",
+  database: "log-analytics",
 });
 
 export interface LogRow {

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getGlobalOLAPMetrics } from "../controllers/olapController.js";
+import { getGlobalOLAPMetrics } from "../controllers/olapController.ts";
 
 const router = Router();
 

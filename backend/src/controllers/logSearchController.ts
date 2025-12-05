@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { searchLogsQuery } from "../db/postgres.js";
+import type { Request, Response } from "express";
+import { searchLogsQuery } from "../db/postgres.ts";
 import type { LogSearchResult } from "../apiTypes.ts";
 
 export async function searchLogs(req: Request, res: Response) {

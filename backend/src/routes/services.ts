@@ -4,7 +4,7 @@ import {
   getServiceMetrics,
   getServiceRecentLogs,
   getServiceOLAP
-} from "../controllers/serviceController.js";
+} from "../controllers/serviceController.ts";
 
 const router = Router();
 

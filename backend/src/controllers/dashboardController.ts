@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import {
   getSystemTrafficLastMin,
   getSystemErrorsLastMin,
@@ -6,7 +6,7 @@ import {
   getSystemP95Latency,
   getTopServicesByTraffic,
   getTopServicesByErrors
-} from "../db/redisMetrics.js"; // new file we generate below
+} from "../db/redisMetrics.ts"; // new file we generate below
 
 import type { DashboardSummary } from "../apiTypes.ts";
 

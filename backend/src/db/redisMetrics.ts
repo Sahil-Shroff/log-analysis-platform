@@ -19,11 +19,30 @@ export async function getSystemP95Latency() {
 }
 
 export async function getTopServicesByTraffic() {
-  const entries = await redis.zRangeWithScores("services:traffic", -5, -1);
-  return entries.map((x) => ({ service: x.value, logs: x.score }));
+  const raw = await redis.zrevrange("services:traffic", 0, 4, "WITHSCORES");
+
+  const list = [];
+  for (let i = 0; i < raw.length; i += 2) {
+    list.push({
+      service: raw[i],
+      logs: Number(raw[i + 1]),
+    });
+  }
+
+  return list;
 }
 
 export async function getTopServicesByErrors() {
-  const entries = await redis.zRangeWithScores("services:errors", -5, -1);
-  return entries.map((x) => ({ service: x.value, errors: x.score }));
+  const raw = await redis.zrevrange("services:errors", 0, 4, "WITHSCORES");
+
+  const list = [];
+  for (let i = 0; i < raw.length; i += 2) {
+    list.push({
+      service: raw[i],
+      errors: Number(raw[i + 1]),
+    });
+  }
+
+  return list;
 }
+

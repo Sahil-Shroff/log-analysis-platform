@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { getGlobalOLAP } from "../db/postgres.js";
+import type { Request, Response } from "express";
+import { getGlobalOLAP } from "../db/postgres.ts";
 
 import type { GlobalOlapResponse } from "../apiTypes.ts";
 

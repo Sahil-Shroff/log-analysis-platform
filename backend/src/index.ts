@@ -4,16 +4,16 @@ import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 
-import dashboardRoutes from "./routes/dashboard.js";
-import servicesRoutes from "./routes/services.js";
-import logsRoutes from "./routes/logs.js";
-import olapRoutes from "./routes/olap.js";
+import dashboardRoutes from "./routes/dashboard.ts";
+import servicesRoutes from "./routes/services.ts";
+import logsRoutes from "./routes/logs.ts";
+import olapRoutes from "./routes/olap.ts";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const swaggerDoc = YAML.load("docs/openapi.yaml");
+const swaggerDoc = YAML.load("docs/swagger.yaml");
 
 // Routes
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));

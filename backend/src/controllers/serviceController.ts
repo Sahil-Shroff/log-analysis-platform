@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 
 import {
   getServiceLogCount,
@@ -6,13 +6,14 @@ import {
   getServiceLatencyAvg,
   getServiceLatencyP95,
   getServiceHealth,
-  getServiceRecentLogs,
-  getServiceDependencyStats
-} from "../db/redis.js";
+  getServiceRecentLogs as fetchRecentLogs,
+  getServiceDependencyStats,
+  redis
+} from "../db/redis.ts";
 
 import {
   getServiceOLAPData
-} from "../db/postgres.js";
+} from "../db/postgres.ts";
 
 import type {
   ServiceOverviewItem,
@@ -74,7 +75,7 @@ export async function getServiceRecentLogs(req: Request, res: Response) {
   const svc = req.params.service;
 
   try {
-    const logs = await getServiceRecentLogs(svc);
+    const logs = await fetchRecentLogs(svc);
 
     const response: ServiceRecentLogsResponse = {
       service: svc,
