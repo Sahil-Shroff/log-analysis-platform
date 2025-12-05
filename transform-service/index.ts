@@ -28,3 +28,7 @@ export async function startTransformService() {
 
   console.log("[transform] Service started");
 }
+
+startTransformService().catch((error) => {
+  console.error("Error starting transform service:", error);
+});
