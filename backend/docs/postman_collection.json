@@ -1,0 +1,67 @@
+{
+  "info": {
+    "name": "Log Analysis Platform API",
+    "_postman_id": "ab12cd34-5678-90ef-1234-567890abcd12",
+    "description": "API test suite for log analytics platform.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Dashboard Summary",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "http://localhost:4000/api/dashboard/summary"
+      }
+    },
+    {
+      "name": "Services Overview",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:4000/api/services"
+      }
+    },
+    {
+      "name": "Service Metrics",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:4000/api/services/{{service}}/metrics",
+          "host": ["localhost"],
+          "path": ["api", "services", "{{service}}", "metrics"]
+        }
+      }
+    },
+    {
+      "name": "Service Recent Logs",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:4000/api/services/{{service}}/recent-logs"
+      }
+    },
+    {
+      "name": "Service OLAP",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:4000/api/services/{{service}}/olap?hours=24"
+      }
+    },
+    {
+      "name": "Log Search",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:4000/api/logs/search?service=auth-service&level=ERROR&limit=50"
+      }
+    },
+    {
+      "name": "Global OLAP Metrics",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:4000/api/olap/metrics?hours=24"
+      }
+    }
+  ],
+  "variable": [
+    { "key": "service", "value": "auth-service" }
+  ]
+}

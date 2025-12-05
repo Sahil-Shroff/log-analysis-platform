@@ -1,0 +1,140 @@
+openapi: 3.0.0
+info:
+  title: Log Analysis Platform API
+  version: 1.0.0
+  description: REST API for log analytics, real-time metrics, OLAP, and log search.
+
+servers:
+  - url: http://localhost:4000/api
+
+paths:
+
+  /dashboard/summary:
+    get:
+      summary: Get system-wide real-time dashboard metrics
+      tags: [Dashboard]
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /services:
+    get:
+      summary: Get all services with real-time metrics
+      tags: [Services]
+      responses:
+        "200":
+          description: List of services and metrics
+
+  /services/{service}/metrics:
+    get:
+      summary: Get real-time metrics for a specific service
+      tags: [Services]
+      parameters:
+        - name: service
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Service metrics
+
+  /services/{service}/recent-logs:
+    get:
+      summary: Get last 50 logs from Redis for a service
+      tags: [Services]
+      parameters:
+        - name: service
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recent log tail
+
+  /services/{service}/olap:
+    get:
+      summary: Get OLAP historical metrics for a service
+      tags: [Services, OLAP]
+      parameters:
+        - name: service
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: hours
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 24
+      responses:
+        "200":
+          description: OLAP data for service
+
+  /logs/search:
+    get:
+      summary: Search raw logs in Postgres
+      tags: [Logs]
+      parameters:
+        - name: service
+          in: query
+          schema:
+            type: string
+        - name: level
+          in: query
+          schema:
+            type: string
+        - name: trace_id
+          in: query
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: latency_gt
+          in: query
+          schema:
+            type: integer
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Search results
+
+  /olap/metrics:
+    get:
+      summary: Get global OLAP metrics (all services)
+      tags: [OLAP]
+      parameters:
+        - name: hours
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 24
+      responses:
+        "200":
+          description: Global OLAP time-series
