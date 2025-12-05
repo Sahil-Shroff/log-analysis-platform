@@ -12,7 +12,7 @@ export async function startRedisAggregator() {
     const isError = log.level === "ERROR" || log.level === "CRITICAL";
 
     // Register service
-    await redis.sadd("services:list", log.service);
+    await redis.sAdd("services:list", log.service);
 
     // A. Logs per service
     await redis.incr(`service:${log.service}:count`);
